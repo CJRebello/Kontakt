@@ -1,0 +1,419 @@
+-- Configuration
+local requiredPlayers = 2 -- Change this to the number of players you need to start
+local countdownDuration = 15 -- Change this to the desired countdown duration in seconds
+local phase1Length = 12 -- Length of phase 1
+local phase2Length = 12
+local getToChopperLength = 180
+local spawnCorner1 = workspace.Corner1.CFrame.Position
+local spawnCorner2 = workspace.Corner2.CFrame.Position
+
+local GeneralMessageEvent = game.ReplicatedStorage.GeneralMessageEvent
+-- Function to teleport a player to the destination
+local function teleportPlayer(player, extracted)	
+	local character = player.Character
+	if character then
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+			local x = math.random(spawnCorner2.X, spawnCorner1.X)
+			local y = spawnCorner1.Y
+			local z = math.random(spawnCorner1.Z, spawnCorner2.Z)
+		humanoidRootPart.CFrame = CFrame.new(Vector3.new(x, y, z))
+		game.ReplicatedStorage.ToggleSpectateEvent:FireClient(player, false)
+		spawn(function()
+			game.ReplicatedStorage.TriggerCountdownEvent:FireClient(player)
+			humanoidRootPart.Anchored = true
+			task.wait(5)
+			humanoidRootPart.Anchored = false
+			extracted.Value = false
+		end)
+		
+		
+	end
+end
+
+-- Function to teleport all players
+local function teleportAllPlayers()
+	local players = game:GetService("Players")
+	for _, player in pairs(players:GetPlayers()) do
+		local extracted = player.Character:FindFirstChildOfClass("BoolValue")
+		if extracted.Value == false then
+			player:LoadCharacter()
+		else
+			if (player.Team.Name == "Alive") then
+				teleportPlayer(player, extracted)
+				game.ReplicatedStorage.ToggleSpectateEvent:FireClient(player, false)
+			end
+			
+		end
+		
+	end
+	task.wait(15)
+end
+
+local function spawnLoot()
+	local workspace = game:GetService("Workspace")
+	
+	local moduleScript = workspace.LootSpawns:FindFirstChild("SpawnLootBox")
+	if moduleScript then
+		local module = require(moduleScript)
+		if module.spawnLootBox and typeof(module.spawnLootBox) == "function" then
+			module.spawnLootBox()
+
+		else
+			print("failed to find function")
+		end
+	else
+		print("failed to find child")
+	end
+	-- Function to call the method on an object (assuming the method exists)
+	--local function callMethodOnObject(plate)
+	--	local moduleScript = plate:FindFirstChild("SpawnLootBox") -- Adjust this to your module script's name
+	--	if moduleScript then
+	--		local module = require(moduleScript)
+	--		if module.spawnLootBox and typeof(module.spawnLootBox) == "function" then
+	--			module.spawnLootBox()
+	--		end
+	--	end
+	--end
+
+	---- Iterate through all objects in the workspace
+	--for _, plate in ipairs(workspace.LootSpawns:GetChildren()) do
+	--	callMethodOnObject(plate)
+	--end
+	
+	--local Workspace = game:GetService("Workspace")
+
+
+	--local function Clicked(player, part)
+	--	if (part.Name == "LootBasicModel") then
+	--		repeat wait() until _G.lootbasic(player)
+	--	elseif (part.Name == "LootRareModel") then
+	--		repeat wait() until _G.lootrare(player)
+	--	elseif (part.Name == "LootEpicModel") then
+	--		repeat wait() until _G.lootepic(player)
+	--	elseif (part.Name == "LootLegendaryModel") then
+	--		repeat wait() until _G.lootlegendary(player)
+	--	else
+			
+	--	end
+	--	part:Destroy()
+	--end
+
+	--for _, part in ipairs(Workspace:GetChildren()) do
+	--	if part:IsA("Model") and string.find(part.Name, "Loot") then
+	--		part.ClickDetector.MouseClick:Connect(function(player)
+	--			Clicked(player, part)
+	--		end)
+	--	end
+	--end
+
+end
+
+
+local Teams = game:GetService("Teams")
+local function setTeamAllPlayers()
+
+		-- Get a list of all players in the game
+		local players = game:GetService("Players"):GetPlayers()
+
+		-- Iterate through the list and set each player's team
+	for _, player in ipairs(players) do
+		if player.Team.Name == "InQueue" then
+			player.Team = game.Teams["Alive"]
+
+		end
+	end
+end
+
+local timer = 0
+
+local function allHealClear()
+	local players = game:GetService("Players")
+	for _, player in pairs(players:GetPlayers()) do
+		local humanoid = player.Character:WaitForChild("Humanoid")
+		humanoid.Health = humanoid.MaxHealth
+		--print(humanoid.Health)
+		local backpack = player.Backpack
+		backpack:ClearAllChildren()
+		for _,v in pairs(player.Character:GetChildren()) do
+			if v.ClassName == "Tool" then
+				if v:FindFirstChild("WeaponType") then
+					print("isagun")
+					game.ReplicatedStorage.DisableGun:FireClient(player, v)
+				else
+					print("notagun")
+				end
+				v:Destroy()
+				
+			end
+		end	    	
+	end
+		
+end
+
+local Players = game:GetService("Players")
+local desiredTeam = game.Teams["Alive"]  -- Replace "YourTeamName" with the actual team name
+local function allPlayersExtracted()
+	
+	-- Create an empty table to store the players on the desired team
+	local playersOnTeam = {}
+
+	-- Iterate through all players
+	for _, player in pairs(Players:GetPlayers()) do
+		if player.Team == desiredTeam then
+			-- Add the player to the table
+			table.insert(playersOnTeam, player)
+		end
+	end
+	for _, player in pairs(playersOnTeam) do
+		local extracted = player.Character:FindFirstChildOfClass("BoolValue")
+		if extracted.Value == false then
+			return
+		end
+	end
+	timer = 0
+end
+
+local function startGame()
+	local players = game:GetService("Players")
+	for _, player in pairs(players:GetPlayers()) do
+		local extracted = player.Character:FindFirstChildOfClass("BoolValue")
+		extracted.Value = true
+	end
+	spawnLoot()
+	allHealClear()
+	setTeamAllPlayers()
+	local helicopters = {workspace.Chop1, workspace.Chop2, workspace.Chop3, workspace.Chop4, workspace.Chop5}
+
+	for i = 1, 5, 1 do
+		helicopters[i].Highlight.Enabled = false
+		helicopters[i].Hitbox.HidePlayer.Enabled = false
+	end
+	teleportAllPlayers()
+	
+	timer = phase1Length
+	while timer > 0 do
+		task.wait(1)
+	end
+	local NextLevelEvent = game.ReplicatedStorage.NextLevelEvent
+	NextLevelEvent:FireAllClients()
+	
+	
+	local activations = 0
+	while activations < 5 do
+		local rand = math.random(1,5)
+		if (helicopters[rand].Highlight.Enabled == false) then
+			helicopters[rand].Highlight.Enabled = true
+			helicopters[rand].Hitbox.HidePlayer.Enabled = true
+			activations += 1
+		end
+	end
+	timer = getToChopperLength
+	while timer > 0 do
+		allPlayersExtracted()
+		task.wait(1)
+		
+	end
+	for i = 1, 5, 1 do
+		helicopters[i].Highlight.Enabled = false
+		helicopters[i].Hitbox.HidePlayer.Enabled = false
+	end
+	print("tpAllP")
+	teleportAllPlayers()
+	
+	timer = phase2Length
+	while timer > 0 do
+		allPlayersExtracted()
+		task.wait(1)
+		
+	end
+	local NextLevelEvent = game.ReplicatedStorage.NextLevelEvent
+	NextLevelEvent:FireAllClients()
+	local activations = 0
+	while activations < 1 do
+		local rand = math.random(1,5)
+		if (helicopters[rand].Highlight.Enabled == false) then
+			helicopters[rand].Highlight.Enabled = true
+			helicopters[rand].Hitbox.HidePlayer.Enabled = true
+			activations += 1
+		end
+	end
+	timer = getToChopperLength
+	while timer > 0 do
+		allPlayersExtracted()
+		task.wait(1)
+	end
+	for i = 1, 5, 1 do
+		helicopters[i].Highlight.Enabled = false
+		helicopters[i].Hitbox.HidePlayer.Enabled = false
+	end
+	--Teleport Players to Endgame
+	local players = game:GetService("Players")
+	for _, player in pairs(players:GetPlayers()) do
+		local extracted = player.Character:FindFirstChildOfClass("BoolValue")
+		if extracted.Value == false then
+			player:LoadCharacter()
+		else
+			if player.Team.Name == "Alive" then
+				local character = player.Character
+				if character then
+					local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+					humanoidRootPart.CFrame = CFrame.new(Vector3.new(math.random(-5400, -4100), 150, math.random(-770, 660)))
+					game.ReplicatedStorage.ToggleSpectateEvent:FireClient(player, false)
+
+					spawn(function()
+						game.ReplicatedStorage.TriggerCountdownEvent:FireClient(player)
+						humanoidRootPart.Anchored = true
+						task.wait(5)
+						humanoidRootPart.Anchored = false
+						extracted.Value = false
+					end)
+
+
+				end
+			end
+		end
+	end
+end
+
+
+
+
+
+
+
+
+-- References
+local players = game:GetService("Players")
+local countdownTimer
+local isCountingDown = false
+local gameStarted = false
+-- Function to check if there are enough players
+
+local targetTeam = Teams:FindFirstChild("InQueue")
+local function areEnoughPlayers()
+	return #targetTeam:GetPlayers() >= requiredPlayers
+end
+
+local runningGameCoroutine = nil
+-- Function to start the countdown
+local function startCountdown()
+	if not isCountingDown and areEnoughPlayers() then
+		local GameStartEvent = game.ReplicatedStorage.GameStartEvent
+		GameStartEvent:FireAllClients()
+		isCountingDown = true
+		countdownTimer = countdownDuration
+		timer = countdownTimer
+		while countdownTimer > 0 do
+			task.wait(1)
+			countdownTimer = countdownTimer - 1
+		end
+
+		isCountingDown = false
+		countdownTimer = nil
+
+		if areEnoughPlayers() then
+			-- Start the game
+			print("Starting the game...")
+			gameStarted = true
+			local GameCommenceEvent = game.ReplicatedStorage.GameCommenceEvent
+			GameCommenceEvent:FireAllClients()
+			runningGameCoroutine = coroutine.create(startGame)
+			coroutine.resume(runningGameCoroutine)
+		end
+	end
+end
+
+-- Function to check if any player leaves during the countdown
+local function checkForLeavingPlayers()
+	while isCountingDown do
+		task.wait(1)
+		local currentPlayers = players:GetPlayers()
+		if #currentPlayers < requiredPlayers then
+			print("A player left. Resetting countdown...")
+			isCountingDown = false
+			countdownTimer = 0
+			timer = 0
+			break
+		end
+	end
+end
+
+-- Player leaving event handler
+players.PlayerRemoving:Connect(function(player)
+	if isCountingDown and not gameStarted then
+		coroutine.wrap(checkForLeavingPlayers)()
+	end
+end)
+
+spawn(function()
+	while true do
+		if timer >= 0 then
+			timer -= 1
+			local UpdateTimerEvent = game.ReplicatedStorage.UpdateTimerEvent
+			UpdateTimerEvent:FireAllClients(timer)
+			
+		end
+		task.wait(1)
+	end
+end)
+spawn(function()
+	while true do
+		local targetTeam = Teams:FindFirstChild("Alive") -- Replace with the actual team name
+		
+		if targetTeam then
+			local playersInTeam = targetTeam:GetPlayers()
+			game.ReplicatedStorage.UpdatePlayersAlive:FireAllClients(#playersInTeam)
+		end
+		task.wait(5)
+	end
+end)
+
+-- Main loop to wait for enough players and start the countdown
+local function gameLoop()
+	while not gameStarted do
+		while not areEnoughPlayers() do
+			local NotEnoughPlayersEvent = game.ReplicatedStorage.NotEnoughPlayersEvent
+			NotEnoughPlayersEvent:FireAllClients()
+			task.wait(5)
+		end
+		startCountdown()
+	end
+	task.wait (5)
+	while gameStarted do
+		local targetTeam = Teams:FindFirstChild("Alive") -- Replace with the actual team name
+
+		if targetTeam then
+			local playersInTeam = targetTeam:GetPlayers()
+
+			if #playersInTeam <= 1 then
+				print("The team is empty.")
+
+				coroutine.close(runningGameCoroutine)
+				gameStarted = false
+				timer = 0
+				if #playersInTeam > 0 then
+					local humanoidRootPart = playersInTeam[1].Character:FindFirstChild("HumanoidRootPart")
+					humanoidRootPart.CFrame = workspace.ClubTP.CFrame
+					GeneralMessageEvent:FireClient(playersInTeam[1], "YOU WIN!", 7)
+					task.wait(10)
+					playersInTeam[1]:LoadCharacter()
+				end
+				gameLoop()
+			else
+				--print("The team is not empty. There are " .. #playersInTeam .. " players in the team.")
+			end
+		else
+			warn("Team not found.")
+		end	
+		task.wait(1)
+
+	end
+end
+
+gameLoop()
+
+
+
+

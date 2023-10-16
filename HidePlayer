@@ -1,0 +1,6 @@
+script.Parent.Touched:Connect(function(touch)
+	if touch.Parent:FindFirstChildOfClass("Humanoid") then
+		local hidePlayer = require(game:GetService("ReplicatedStorage").hidePlayer)
+		hidePlayer.hidePlayer(touch)
+	end
+end)

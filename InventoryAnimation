@@ -1,0 +1,47 @@
+local frame = script.Parent.Parent.Frame -- Reference to the frame you want to animate
+local tweenService = game:GetService("TweenService")
+
+local startPos = UDim2.new(1, 0, .3, 0) -- Start position (off-screen to the right)
+frame.Position = startPos
+frame.Visible = false
+local endPos = UDim2.new(.675, 0, .3, 0) -- End position (on-screen)
+
+local showing = false
+
+local tweenInfoForward = TweenInfo.new(
+	.25, -- Duration (in seconds)
+	Enum.EasingStyle.Sine, -- Easing style (you can change this)
+	Enum.EasingDirection.Out, -- Easing direction (you can change this)
+	0, -- Delay before animation starts (optional)
+	false, -- Repeat (optional)
+	0 -- Reverses the animation (optional)
+)
+local tweenInfoBackward = TweenInfo.new(
+	.25, -- Duration (in seconds)
+	Enum.EasingStyle.Sine, -- Easing style (you can change this)
+	Enum.EasingDirection.Out, -- Easing direction (you can change this)
+	0, -- Delay before animation starts (optional)
+	false, -- Repeat (optional)
+	0 -- Reverses the animation (optional)
+)
+
+local tweenOut = tweenService:Create(frame, tweenInfoForward, {Position = endPos})
+local tweenIn = tweenService:Create(frame, tweenInfoBackward, {Position = startPos})
+
+
+-- Function to trigger the animation
+function animateFrame()
+	game.ReplicatedStorage.RefreshInventoryEvent:FireServer()
+	showing = not showing
+	frame.Visible = true
+	if (showing == true) then
+		tweenOut:Play()
+	else
+		game.ReplicatedStorage.EnableMouseEvent:FireServer(false)
+		tweenIn:Play()
+		wait(.25)
+		frame.Visible = false
+	end
+end
+-- Call the animation function when needed (e.g., when a button is clicked)
+script.Parent.MouseButton1Click:Connect(animateFrame)

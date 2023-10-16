@@ -1,0 +1,41 @@
+local Teams = game:GetService("Teams")
+
+local targetTeam = Teams:FindFirstChild("Dead")
+
+local Players = game:GetService("Players")
+
+
+-- Function to handle player death
+local function handlePlayerDeath(player)
+	-- Find the "Dead" team
+
+	player.Team = game.Teams["Dead"]
+end
+
+Players.PlayerAdded:Connect(handlePlayerDeath)
+local GeneralMessageEvent = game.ReplicatedStorage.GeneralMessageEvent
+
+
+-- Listen for the CharacterAdded event (when a player respawns)
+game.Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		handlePlayerDeath(player)
+		game.ReplicatedStorage.ToggleSpectateEvent:FireClient(player, true)
+		
+			
+		
+		-- Set up character death detection here if necessary
+		character:WaitForChild("Humanoid").Died:Connect(function()
+			handlePlayerDeath(player)
+			GeneralMessageEvent:FireClient(player, "YOU DIED!", 3)
+			local skydive = character:FindFirstChild("Skydive")
+			if skydive then
+				skydive:Destroy()
+			end
+		end)
+		local skydive = game.ServerStorage.Skydive:Clone()
+		skydive.Parent = character
+	end)
+end)
+
+

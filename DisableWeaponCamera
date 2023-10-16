@@ -1,0 +1,22 @@
+local WeaponsSystemFolder = game:GetService("ReplicatedStorage"):FindFirstChild("WeaponsSystem")
+local WeaponsSystem = require(WeaponsSystemFolder.WeaponsSystem)
+
+game.ReplicatedStorage.DisableGun.OnClientEvent:Connect(function(v)
+	
+	local instance = WeaponsSystem.getWeaponForInstance(v)
+	WeaponsSystem.setWeaponEquipped(instance, false)
+	
+end)
+
+local function handleSpectateEvent(enabled)
+	if (enabled == true) then
+		WeaponsSystem.camera:setEnabled(true)
+	else
+		WeaponsSystem.camera:setEnabled(false)
+	end
+end
+game.ReplicatedStorage.DisableCameraEvent.OnClientEvent:Connect(handleSpectateEvent)
+
+	
+
+

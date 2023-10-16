@@ -1,0 +1,5 @@
+local function disableCam(plr, value)
+	game.ReplicatedStorage.DisableCameraEvent:FireClient(plr, value)
+	game.ReplicatedStorage.EnableMouseEvent:FireClient(plr, false)
+end
+game.ReplicatedStorage.DisableCameraEvent.OnServerEvent:Connect(disableCam)

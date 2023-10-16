@@ -1,0 +1,12 @@
+
+local event = game.ReplicatedStorage.ToggleSpectateEvent
+
+local function handleEvent(player, enabled)
+	event:FireClient(player, enabled)
+end
+event.OnServerEvent:Connect(handleEvent)
+
+game.ReplicatedStorage.EnableMouseEvent.OnServerEvent:Connect(function(plr, value)
+	game.ReplicatedStorage.EnableMouseEvent:FireClient(plr, value)
+end)
+	

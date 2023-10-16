@@ -1,0 +1,6 @@
+local proxim = script.Parent
+proxim.Triggered:Connect(function(plr)
+	local module = require(game.ReplicatedStorage.LootTable)
+	module.LootTable(plr, 70)
+	proxim.Parent.Parent:Destroy()	
+end)

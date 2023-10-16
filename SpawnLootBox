@@ -1,0 +1,50 @@
+local module = {}
+function module.spawnLootBox()
+	local plates = workspace.LootSpawns.Plates
+
+	for _, plate in pairs(plates:GetChildren()) do
+		if plate:IsA("Part") then
+			local boxPointer = plate:FindFirstChild("boxPointer")
+			if boxPointer then
+				--print("boxpointerfound")
+			else
+				print("hasboxpointernotfound")
+			end
+			if boxPointer.Value ~= nil then
+				boxPointer.Value:Destroy()
+			end
+			local lootTable = {
+				{item = nil, chance = 50},
+				{item = game.ServerStorage.LootBasicModel, chance = 35},
+				{item = game.ServerStorage.LootRareModel, chance = 10},
+				{item = game.ServerStorage.LootEpicModel, chance = 5},
+			}
+			local chance = 0;
+			local selectedItem
+			local randomValue = math.random(1,100);
+			for _, item in ipairs(lootTable) do
+				chance += item.chance
+				if randomValue <= chance then
+					selectedItem = item.item;
+					break;
+				end
+			end
+			if selectedItem then
+				local newBox = selectedItem:Clone()
+				newBox.Parent = workspace
+				local newPosition = plate.CFrame
+				newBox:SetPrimaryPartCFrame(newPosition)
+				boxPointer.Value = newBox
+			else
+				boxPointer.Value = nil
+			end
+		end
+		
+
+	end
+	
+	
+	
+end
+
+return module

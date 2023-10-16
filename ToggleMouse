@@ -1,0 +1,19 @@
+local UserInputService = game:GetService("UserInputService")
+game.ReplicatedStorage.EnableMouseEvent.OnClientEvent:Connect(function(value)
+	script.Parent.Visible = value
+	script.Parent.TextButton.Modal = value
+end)
+-- Define the key you want to check (in this case, "M")
+local keyToCheck = Enum.KeyCode.Tab
+
+-- Function to handle key press
+local function onKeyPress(input, gameProcessedEvent)
+	if not gameProcessedEvent and input.KeyCode == keyToCheck then
+		-- "M" key is pressed
+		script.Parent.Visible = not script.Parent.Visible
+		script.Parent.TextButton.Modal = not script.Parent.TextButton.Modal
+	end
+end
+
+-- Connect the function to the key press event
+UserInputService.InputBegan:Connect(onKeyPress)

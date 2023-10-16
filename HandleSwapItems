@@ -1,0 +1,15 @@
+local function swap(plr, index1, index2)
+	game.ReplicatedStorage.ChangeWeaponEvent:FireClient(plr, index1, index2)
+end
+game.ReplicatedStorage.ChangeWeaponEvent.OnServerEvent:Connect(swap)
+
+
+local function refresh(plr)
+	game.ReplicatedStorage.RefreshInventoryEvent:FireClient(plr)
+end
+game.ReplicatedStorage.RefreshInventoryEvent.OnServerEvent:Connect(refresh)
+
+local function refresh2(plr, textures)
+	game.ReplicatedStorage.RefreshInventoryEvent2:FireClient(plr, textures)
+end
+game.ReplicatedStorage.RefreshInventoryEvent2.OnServerEvent:Connect(refresh2)

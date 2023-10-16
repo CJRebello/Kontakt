@@ -1,0 +1,107 @@
+local player = game.Players.LocalPlayer
+
+-- Function to find and retrieve all decals in a player's backpack
+local function findToolsInBackpack(player)
+	local backpack = player.Backpack
+	local decals = {}
+
+	if backpack then
+		for _, item in pairs(backpack:GetChildren()) do
+			-- Check if the item has a decal
+			if item:IsA("Tool") then
+				table.insert(decals, item)
+			end
+		end
+	end
+
+	return decals
+end
+
+local slot1 = nil
+local slot2 = nil
+
+local slots = script.Parent
+local images = {
+	slots.Row1.S1.D1,
+	slots.Row1.S2.D2,
+	slots.Row1.S3.D3,
+
+	slots.Row2.S1.D1,
+	slots.Row2.S2.D2,
+	slots.Row2.S3.D3,
+
+	slots.Row3.S1.D1,
+	slots.Row3.S2.D2,
+	slots.Row3.S3.D3,
+}
+
+
+local function refreshInv(textures)
+	if textures == nil then
+		return
+	end
+	-- Usage: Get a list of all decals in the player's backpack
+	
+	local decalList = game:GetService("HttpService"):JSONDecode(textures)
+
+
+
+
+		for i, decal in ipairs(decalList) do
+			if decal then
+				images[i].Image = decal
+			end
+		end
+
+	slot1 = nil
+	slot2 = nil
+end
+game.ReplicatedStorage.RefreshInventoryEvent2.OnClientEvent:Connect(refreshInv)
+
+local function checkSwap(slot)
+	if not slot1 then
+		slot1 = slot
+	elseif not slot2 then
+		slot2 = slot
+	end
+	if slot1 and slot2 then
+		--print("Swap " .. tostring(slot1) .. " with " .. tostring(slot2))
+		local tmp = slot1.Image
+		slot1.Image = slot2.Image
+		slot2.Image = tmp
+		game.ReplicatedStorage.ChangeWeaponEvent:FireServer(slot1.Index.Value, slot2.Index.Value)
+		slot1 = nil
+		slot2 = nil
+	end
+end
+
+
+slots.Row1.S1.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row1.S1.D1)
+end)
+slots.Row1.S2.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row1.S2.D2)
+end)
+slots.Row1.S3.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row1.S3.D3)
+end)
+
+slots.Row2.S1.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row2.S1.D1)
+end)
+slots.Row2.S2.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row2.S2.D2)
+end)
+slots.Row2.S3.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row2.S3.D3)
+end)
+
+slots.Row3.S1.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row3.S1.D1)
+end)
+slots.Row3.S2.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row3.S2.D2)
+end)
+slots.Row3.S3.MouseButton1Click:Connect(function()
+	checkSwap(slots.Row3.S3.D3)
+end)

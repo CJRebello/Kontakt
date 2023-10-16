@@ -1,0 +1,7 @@
+local function updateFeed(player1, player2)
+	local feed = game.ReplicatedStorage.Feed:Clone()
+	feed.Parent = script.Parent.Frame
+	feed.TextLabel.Text = tostring(player1) .. " killed " .. tostring(player2)
+end
+
+game.ReplicatedStorage.UpdateKillFeedEvent.OnClientEvent:Connect(updateFeed)

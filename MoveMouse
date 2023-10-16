@@ -1,0 +1,11 @@
+local Camera = workspace.CurrentCamera -- Get the camera so we can use the "WorldToScreenPoint" function
+
+local FakeMouse = script.Parent -- Variable for the "o" TextLabel or in other words fake mouse
+local RealMouse = game.Players.LocalPlayer:GetMouse() -- Get the player's real mouse so we can find it's hit position.
+
+game:GetService("RunService").RenderStepped:Connect(function() -- Run the RenderedStepped function, which fires every frame prior to it being rendered, allowing us to basically loop the function without halting the rest of the script.
+	if (script.Parent.Parent.Visible == true) then
+		local WorldToScreenPoint = Camera:WorldToScreenPoint(RealMouse.Hit.Position) -- Turn the Vector3 (mouse) position to a Vector2 position
+		FakeMouse.Position = UDim2.new(0, WorldToScreenPoint.X, 0, WorldToScreenPoint.Y) -- Take the X and Y coordinates from the Vector2 and put them in the offsets off the FakeMouse's position.
+	end
+end)
